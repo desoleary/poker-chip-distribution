@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  =============================================================================
+    Build file for the Shopping Tools Marketing Copy API Builder Application Development.
+
+    The following Ant tasks need to be available in your ant installation (i.e.
+    the Ant task themselves and their dependent jars need to be put in
+    ANT_HOME/lib) :
+
+        junit          [REQUIRED] JUnit Ant task
+
+    The mandatory and optional Ant properties are defined in
+    build.properties. Please read and edit that file.
+
+    This script should be started with the following command line :
+
+        ant <target>
+
+    Run "ant -projecthelp" to get a list of available targets. The default
+    target is "full"
+  =============================================================================
+-->
+<project name="Poker Chip Distribution Programming Problem" default="full">
+	<description>
+		Poker Chip Distribution Test
+	    ------------------------------------------------------
+		calculates the optimum distribution of poker chips that maximizes 
+		the number of chips that each player receives while also making sure 
+		everyone receives the SAME breakdown of poker chips.  
+	</description>
+
+	<!--
+	     ========================================================================
+	       Initialize properties.
+	     ========================================================================
+	  -->
+	<target name="init">
+		<property file="build.properties" />
+
+		<path id="lib.classpath">
+			<fileset dir="${application.dependencies.dir}">
+				<include name="*.jar" />
+			</fileset>
+		</path>
+	</target>
+
+	<!--
+	     ========================================================================
+	       Prepare the folder structure.
+	     ========================================================================
+	  -->
+	<target name="prepare" depends="init">
+		<mkdir dir="${basedir.target.reports.dir}" />
+		<mkdir dir="${basedir.setup.src.classes.dir}" />
+		<mkdir dir="${basedir.setup.test.classes.dir}" />
+		<mkdir dir="${basedir.target.reports.system.dir}" />
+		<mkdir dir="${basedir.target.conf.dir}" />
+		<mkdir dir="${basedir.target.docs.dir}" />
+	</target>
+	
+	<!--
+	     ========================================================================
+	       Compile source classes
+	     ========================================================================
+	  -->
+	<!--Note that if some dependency is missing in the classpath, instead of compilation errors,
+	      Ivy reports to Maven 'No Compiler Found' error. 
+	-->
+	<target name="compile" depends="prepare">
+		<javac srcdir="${application.src.java.dir}" destdir="${basedir.setup.src.classes.dir}" classpathref="lib.classpath" debug="off" includeantruntime="true"/>
+	</target>
+
+	<!--
+		========================================================================
+		   Create the runtime jar package
+		========================================================================
+	-->
+
+	<target name="package" depends="compile">
+		<jar destfile="${basedir}/${project.name}.jar" basedir="${basedir.setup.src.classes.dir}" includes="**/*.class">
+			 <manifest>
+				   <attribute name="Main-Class" value="com.company.application.main.AssignmentProblems"/>
+			</manifest>
+		</jar>
+		<javadoc packagenames="com.company.application.*"
+		           sourcepath="${application.src.java.dir}"
+		           excludepackagenames="*Test.*"
+		           defaultexcludes="yes"
+		           destdir="${basedir.target.docs.dir}"
+		           author="true"
+		           version="true"
+		           use="true"
+		           windowtitle="Poker Chip Distribution">
+		    <doctitle><![CDATA[<h1>Poker Chip Distribution</h1>]]></doctitle>
+		    <bottom><![CDATA[<i>Copyright &#169; 2010 XXXXX. All Rights Reserved.</i>]]></bottom>		    
+		  </javadoc>
+		<zip destfile="${basedir}/${project.name}-with-dependencies.zip">
+			<zipfileset dir="${application.dependencies.dir}" includes="*.jar" prefix="lib" />
+			<zipfileset dir="${basedir.target.docs.dir}" includes="**/*.*" prefix="docs/javadocs" />
+			<zipfileset dir="${application.conf.dir}" includes="*.*" prefix="config" />
+			<zipfileset dir="${application.src.java.dir}" includes="**/*.*" prefix="src" />
+			<zipfileset dir="${application.integration.test.dir}" includes="**/*.*" prefix="test" />
+			<fileset file="${basedir}/${project.name}.jar"/>
+		</zip>
+		<delete file="${basedir}/${project.name}.jar"/>
+	</target>
+
+	<!--
+		========================================================================
+			Compile tests
+		========================================================================
+	-->
+
+	<target name="integration.test.compile" depends="prepare, compile">
+
+		<javac srcdir="${application.integration.test.dir}" destdir="${basedir.setup.test.classes.dir}" classpathref="lib.classpath" debug="${debug}" includeantruntime="false">
+			<classpath>
+				<pathelement location="${basedir.setup.src.classes.dir}" />
+			</classpath>
+		</javac>
+	</target>
+
+	<!--
+		========================================================================
+			Run tests
+		========================================================================
+	-->
+
+	<target name="integration.test.run" depends="integration.test.compile">
+		<junit fork="yes" printsummary="yes" showoutput="yes" filtertrace="true" haltonerror="true" haltonfailure="true" includeantruntime="false">
+
+			<!--Specify the name of the coverage data file to use. The value specified below is the default.-->
+
+			<!--Note the classpath order: instrumented classes are before the original (uninstrumented) classes.  This is important.-->
+
+			<classpath location="${basedir.setup.src.classes.dir}" />
+
+			<classpath>
+				<path refid="lib.classpath" />
+				<pathelement location="${basedir.setup.test.classes.dir}" />
+				<pathelement location="${basedir}" />
+			</classpath>
+
+			<batchtest todir="${basedir.target.reports.system.dir}">
+				<fileset dir="${basedir.setup.test.classes.dir}">
+					<include name="**/*Test*.class" />
+				</fileset>
+			</batchtest>
+		</junit>
+		<junitreport todir="${basedir.target.reports.dir}">
+			<fileset dir="${basedir.target.reports.system.dir}" includes="TEST-*.xml" />
+			<report todir="${basedir.target.reports.system.dir}" format="frames" />
+		</junitreport>
+	</target>
+	
+	<!--
+		========================================================================
+			Run Assignment
+		========================================================================
+	-->
+	
+	<target name="run.assignment" depends="integration.test.run">
+		<java classname="com.company.application.main.AssignmentProblems">
+	    	<redirector inputstring="${basedir}\config\problem1.txt"></redirector>
+			<classpath>
+				<pathelement path="${basedir.setup.src.classes.dir}"/>
+			</classpath>
+	    </java>
+		<java classname="com.company.application.main.AssignmentProblems">			
+			<redirector inputstring="${basedir}\config\problem2.txt"></redirector>			
+			<classpath>
+				<pathelement path="${basedir.setup.src.classes.dir}"/>
+			</classpath>
+		</java>
+		<java classname="com.company.application.main.AssignmentProblems">
+			<redirector inputstring="${basedir}\config\problem3.txt"></redirector>
+			<classpath>
+				<pathelement path="${basedir.setup.src.classes.dir}"/>
+			</classpath>
+		</java>
+	</target>
+
+	<!--
+	     ========================================================================
+	       Clean the build directory.
+	     ========================================================================
+	 -->
+	<target name="clean" depends="prepare">
+		<delete dir="${basedir.target.setup.dir}" />
+		<delete dir="${basedir.target.reports.dir}" />
+		<delete dir="${basedir.setup.src.classes.dir}" />
+		<delete dir="${basedir.target.reports.system.dir}" />
+		<delete dir="${basedir.target.conf.dir}}" />
+		<delete dir="${basedir.target.docs.dir}}" />
+	</target>
+
+	<target name="full" depends="run.assignment, package">
+	</target>
+</project>

@@ -1,0 +1,9 @@
+The main premise of how I code is that I strive for clean code and good abstractions to promote reuse and maintenance going forward and I hope that you can see this throughout.  
+
+I have left out of scope the likes of logging and through performance testing and other cross-cutting and functional concerns that would need to be added in a production ready solution however I have taken great care to produce a solution that might be easy on the eyes :)  
+
+The main algorithm is based on the idea of working with the smallest currency range return the maximum amount and check if it is greater than or equal to the buy in amount.  
+
+If this is true then continue to calculate the remaining amount and start on the maximum denomination and find how many times this value goes into the buy in amount and carry this process until the remaining amount equals zero.
+
+Attached with in is both the zipped up jar and dependencies and also the Eclipse project itself so you can easily traverse through the files…
